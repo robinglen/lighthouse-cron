@@ -1,0 +1,30 @@
+{
+  "name": "lighthouse-cron",
+  "version": "1.0.0",
+  "description": "Tool to run light house cron jobs on multiple urls and ship results",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thearegee/lighthouse-cron.git"
+  },
+  "keywords": [
+    "lighthouse",
+    "ci"
+  ],
+  "author": "Robin Glen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thearegee/lighthouse-cron/issues"
+  },
+  "homepage": "https://github.com/thearegee/lighthouse-cron#readme",
+  "devDependencies": {
+    "jest": "^19.0.2"
+  },
+  "dependencies": {
+    "cron": "^1.2.1"
+  }
+}
