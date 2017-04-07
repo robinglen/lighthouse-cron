@@ -1,110 +1,112 @@
-const CronJob = require('cron').CronJob;
-const Lighthouse = require('lighthouse');
-const ChromeLauncher = require('lighthouse/lighthouse-cli/chrome-launcher.js').ChromeLauncher;
-const Printer = require('lighthouse/lighthouse-cli/printer');
-const defer = require('promise-defer');
+const KeenTracking = require('keen-tracking');
+const PROJECT = process.env.PROJECT_ID;
+const KEY = process.env.WRITE_KEY;
 
+const client = new KeenTracking({
+  projectId: PROJECT,
+  writeKey: KEY
+});
 
-function launchChrome() {
-    return new ChromeLauncher({
-        port: 9222,
-        autoSelectChrome: true
-    });
+const LighthouseCron = require('./src/');
+const lighthouseCron = new LighthouseCron(
+  [
+    {
+      title: 'Homepage',
+      brand: 'NAP',
+      url: 'https://www.net-a-porter.com/'
+    },
+    {
+      title: 'Whats new',
+      brand: 'NAP',
+      url: 'https://www.net-a-porter.com/gb/en/m/Shop/Whats-New/Now'
+    },
+    {
+      title: 'Product details',
+      brand: 'NAP',
+      url: 'https://www.net-a-porter.com/gb/en/product/855530'
+    },
+    {
+      title: 'Shopping bag',
+      brand: 'NAP',
+      url: 'https://www.net-a-porter.com/gb/en/shoppingbag.nap'
+    },
+    {
+      title: 'Editorial',
+      brand: 'NAP',
+      url: 'https://www.net-a-porter.com/magazine'
+    },
+    {
+      title: 'Homepage',
+      brand: 'MRP',
+      url: 'https://www.mrporter.com/'
+    },
+    {
+      title: 'Whats new',
+      brand: 'MRP',
+      url: 'https://www.mrporter.com/en-gb/mens/whats-new'
+    },
+    {
+      title: 'Product details',
+      brand: 'MRP',
+      url: 'https://www.mrporter.com/en-gb/mens/tom_ford/slim-fit-button-down-collar-cotton-and-cashmere-blend-twill-shirt/788010'
+    },
+    {
+      title: 'Shopping bag',
+      brand: 'MRP',
+      url: 'https://www.mrporter.com/en-gb/shoppingbag.mrp'
+    },
+    {
+      title: 'Editorial',
+      brand: 'MRP',
+      url: 'https://www.mrporter.com/journal/'
+    }
+  ],
+  '00 15,30,45 * * * 0-6'
+);
+
+lighthouseCron.on('auditComplete', audit => {
+  addAudit(audit);
+});
+
+function getRequiredAuditMetrics(audit) {
+  return {
+    score: audit.score,
+    value: audit.rawValue,
+    optimal: audit.optimalValue
+  };
 }
 
+function generateTrackableReport(audit) {
+  const reports = [
+    'first-meaningful-paint',
+    'speed-index-metric',
+    'estimated-input-latency',
+    'time-to-interactive',
+    'total-byte-weight',
+    'dom-size'
+  ];
 
-function runLighthouse(chrome, url) {
-    const flags = {
-        output: 'json'
-    };
-    const config = require('lighthouse/lighthouse-core/config/perf.json');
-    return chrome.isDebuggerReady()
-        .catch(() => {
-            if (flags.skipAutolaunch) {
-                return;
-            }
-            return chrome.run(); // Launch Chrome.
-        })
-        .then(() => Lighthouse(url, flags, config)) // Run Lighthouse.
-        .then(results => chrome.kill().then(() => results)) // Kill Chrome and return results.
-        .catch(err => {
-            // Kill Chrome if there's an error.
-            return chrome.kill().then(() => {
-                throw err;
-            }, console.error);
-        });
+  const obj = {
+    metadata: audit.metadata,
+    score: Math.round(audit.score),
+    results: {}
+  };
+
+  reports.forEach(report => {
+    obj.results[report] = getRequiredAuditMetrics(audit.results.audits[report]);
+  });
+  return obj;
 }
 
-
-class LighthouseCron {
-    constructor(urls = [], cron = '0 0/5 * 1/1 * ? *', timeZone = 'Europe/London') {
-        this.urls = urls;
-        this.cron = cron;
-        this.chrome = launchChrome();
-        this.job = new CronJob(cron, () => {
-                this._cron(this.urls);
-            }, function() {
-                console.log('finished');
-            },
-            false,
-            timeZone
-        );
+function addAudit(audit) {
+  const report = generateTrackableReport(audit);
+  client.recordEvent('lighthouse', report, (err, res) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(res);
     }
-
-
-    _cron(urls) {
-        this.doPromises(urls, this.chrome);
-    }
-
-    promiseWhile(condition, action) {
-        const resolver = defer();
-
-        function loop() {
-            if (!condition()) return resolver.resolve();
-            return Promise.resolve(action()).then(loop).catch(resolver.reject);
-        }
-        process.nextTick(loop);
-        return resolver.promise;
-    }
-
-    doPromises(urls, chrome) {
-        return new Promise((resolve, reject) => {
-            let urlArrayPosition = 0;
-
-            this.promiseWhile(
-                    () => urlArrayPosition < urls.length,
-                    () =>
-                    runLighthouse(chrome, urls[urlArrayPosition]).then(lighthouseResults => {
-                        urlArrayPosition++
-                        console.log(`finished promise ${urlArrayPosition}`);
-                        return Printer.write(lighthouseResults);
-                    })
-                )
-                .then(() => {
-                    console.log('finuished all promises');
-                    resolve();
-                })
-                .catch((error) => {
-                    console.log(`a promise blew up`);
-
-                    reject(error);
-                });
-        });
-    }
-
-
-    init() {
-        if (!this.urls.length > 0) {
-            console.log('No paths passed');
-            return;
-        }
-
-        this._cron(this.urls);
-        this.job.start();
-    }
-
+  });
 }
 
-new LighthouseCron([
-    'https://www.net-a-porter.com/'
-], '30 * * * * 0-6').init();
+lighthouseCron.init();
