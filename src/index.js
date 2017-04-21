@@ -1,47 +1,10 @@
+const lighthouse = require('./lighthouse')
 const CronJob = require('cron').CronJob;
-const Lighthouse = require('lighthouse');
-const ChromeLauncher = require('lighthouse/lighthouse-cli/chrome-launcher.js').ChromeLauncher;
 const Printer = require('lighthouse/lighthouse-cli/printer');
 const defer = require('promise-defer');
 const EventEmitter = require('events').EventEmitter;
 
-function launchChrome() {
-  return new ChromeLauncher({
-    port: 9222,
-    autoSelectChrome: true
-  });
-}
-
-function runLighthouse(chrome, url) {
-  const flags = {
-    output: 'json'
-  };
-  return chrome
-    .isDebuggerReady()
-    .catch(() => {
-      if (flags.skipAutolaunch) {
-        return;
-      }
-      return chrome.run(); // Launch Chrome.
-    })
-    .then(() => Lighthouse(url, flags)) // Run Lighthouse.
-    .then(results => chrome.kill().then(() => results)) // Kill Chrome and return results.
-    .catch(err => {
-      // Kill Chrome if there's an error.
-      return chrome.kill().then(
-        () => {
-          throw err;
-        },
-        console.error
-      );
-    });
-}
-
-function getOverallScore(lighthouseResults) {
-  const scoredAggregations = lighthouseResults.aggregations.filter(a => a.scored);
-  const total = scoredAggregations.reduce((sum, aggregation) => sum + aggregation.total, 0);
-  return (total / scoredAggregations.length) * 100;
-}
+console.log(lighthouse);
 
 module.exports = class LighthouseCron extends EventEmitter {
   constructor(
@@ -52,7 +15,7 @@ module.exports = class LighthouseCron extends EventEmitter {
     super();
     this.urls = urls;
     this.cron = cron;
-    this.chrome = launchChrome();
+    this.chrome = lighthouse.launchChrome();
     this.job = new CronJob(
       cron,
       () => {
@@ -70,7 +33,7 @@ module.exports = class LighthouseCron extends EventEmitter {
     this.doPromises(urls, this.chrome);
   }
 
-  promiseWhile(condition, action) {
+  _promiseWhile(condition, action) {
     const resolver = defer();
 
     function loop() {
@@ -81,20 +44,20 @@ module.exports = class LighthouseCron extends EventEmitter {
     return resolver.promise;
   }
 
-  doPromises(urls, chrome) {
+  _doPromises(urls, chrome) {
     return new Promise((resolve, reject) => {
       let urlArrayPosition = 0;
 
       this.promiseWhile(
         () => urlArrayPosition < urls.length,
         () =>
-          runLighthouse(
+          lighthouse.runLighthouse(
             chrome,
             urls[urlArrayPosition].url
           ).then(lighthouseResults => {
             this.emit('auditComplete', {
               metadata: urls[urlArrayPosition],
-              score: getOverallScore(lighthouseResults),
+              score: lighthouse.getOverallScore(lighthouseResults),
               results: lighthouseResults
             });
             urlArrayPosition++;
@@ -113,13 +76,14 @@ module.exports = class LighthouseCron extends EventEmitter {
     });
   }
 
-  init() {
+  init(autorun = false) {
     if (!this.urls.length > 0) {
       console.log('No paths passed');
       return;
     }
-
-    this._cron(this.urls);
+    if (autorun) {
+        this._cron(this.urls);
+    }
     this.job.start();
   }
 };

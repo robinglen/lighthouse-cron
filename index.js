@@ -109,4 +109,4 @@ function addAudit(audit) {
   });
 }
 
-lighthouseCron.init();
+lighthouseCron.init(true);
