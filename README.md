@@ -80,7 +80,8 @@ const lighthouseCron = new LighthouseCron(
       description: 'Homepage',
       url: 'https://www.google.com/'
     }
-  ]
+  ],
+  '00 00,15,30,45 * * * 0-6'
 );
 
 lighthouseCron.on('auditComplete', audit => {
