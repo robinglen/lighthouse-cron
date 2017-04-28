@@ -4,7 +4,6 @@
   "description": "Tool to run light house cron jobs on multiple urls and ship results",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
     "test": "jest"
   },
   "repository": {
@@ -28,10 +27,8 @@
     "jest": "^19.0.2"
   },
   "dependencies": {
-    "command-line-args": "^4.0.2",
     "cron": "^1.2.1",
     "lighthouse": "^1.6.0",
-    "pino": "^4.3.0",
     "promise-defer": "^1.0.0"
   }
 }

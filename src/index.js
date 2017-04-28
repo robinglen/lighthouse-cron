@@ -3,20 +3,17 @@ const CronJob = require('cron').CronJob;
 const Printer = require('lighthouse/lighthouse-cli/printer');
 const defer = require('promise-defer');
 const EventEmitter = require('events').EventEmitter;
-const pino = require('pino').pretty();
 
 module.exports = class LighthouseCron extends EventEmitter {
     constructor(
         urls = [],
-        cron = '0 0/5 * 1/1 * ? *',
-        timeZone = 'Europe/London',
-        logger = 'info',
+        cron = '00 00 * * * 0-6',
+        timezone = 'Europe/London',
         flags = {}
     ) {
         super();
         this.urls = urls;
         this.cron = cron;
-        this.logger = logger;
         this.flags = flags;
         this.chrome = lighthouse.launchChrome(this.flags);
         this.job = new CronJob(
@@ -25,11 +22,10 @@ module.exports = class LighthouseCron extends EventEmitter {
                 this._cron(this.urls);
             },
             () => {
-                pino.info('Cron cycle complete');
                 this.emit('cronCycleComplete', auditObj);
             },
             false,
-            timeZone
+            timezone
         );
     }
 
@@ -64,7 +60,6 @@ module.exports = class LighthouseCron extends EventEmitter {
                             score: lighthouse.getOverallScore(lighthouseResults),
                             results: lighthouseResults
                         };
-                        pino.info('Audit complete', auditObj);
                         this.emit('auditComplete', auditObj);
                         urlArrayPosition++;
                     })
@@ -73,7 +68,6 @@ module.exports = class LighthouseCron extends EventEmitter {
                     const msg = {
                         message: `${urls.length} audits completed`
                     };
-                    pino.info('All audit complete', msg);
                     this.emit('allAuditsComplete', msg);
                     resolve();
                 })
@@ -85,16 +79,10 @@ module.exports = class LighthouseCron extends EventEmitter {
     }
 
     init(autorun = false) {
-        pino.level = this.logger;
         if (!this.urls.length > 0) {
-            pino.error('No urls passed');
+            console.error('No urls passed');
             return;
         }
-        pino.info({
-            cron: this.cron,
-            timezone: this.timeZone,
-            urls: this.urls
-        });
         if (autorun) {
             this._cron(this.urls);
         }
