@@ -90,7 +90,7 @@ lighthouseCron.on('auditComplete', audit => {
 function addAudit(audit) {
   const report = generateTrackableReport(audit);
   console.log(report);
-  // This can be Beacon
+  // You could also beacon this back to GA as custom metrics or your own data visualization platform
 }
 
 function generateTrackableReport(audit) {
