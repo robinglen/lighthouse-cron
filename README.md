@@ -3,6 +3,14 @@
 
 Want to track your Lighthouse scores and metrics overtime? This module will allow you to write a simple script to perform multiple audits over time and allow you to transport the results.
 
+## TODO
+- Fix flags
+- run in chromeless (https://developers.google.com/web/updates/2017/04/headless-chrome)
+- coverage
+- show example of using keen.io to send data back
+- publish to npm
+- allow for custom lighthouse jobs
+
 ## Set up
 
 ```Bash
@@ -77,7 +85,7 @@ const LighthouseCron = require('lighthouse-cron');
 const lighthouseCron = new LighthouseCron(
   [
     {
-      website: 'Goole',
+      website: 'Google',
       description: 'Homepage',
       url: 'https://www.google.com/'
     }
