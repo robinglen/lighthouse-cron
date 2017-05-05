@@ -23,7 +23,6 @@ lighthouseCron.on('auditComplete', audit => {
   console.log(report);
 });
 
-
 // Pulling out the metrics we are interested in
 function generateTrackableReport(audit) {
   const reports = [

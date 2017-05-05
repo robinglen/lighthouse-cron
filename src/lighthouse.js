@@ -30,9 +30,14 @@ function runLighthouse(chrome, url, flags = {}, config = undefined) {
 }
 
 function getOverallScore(lighthouseResults) {
-  const scoredAggregations = lighthouseResults.aggregations.filter(a => a.scored);
-  const total = scoredAggregations.reduce((sum, aggregation) => sum + aggregation.total, 0);
-  return (total / scoredAggregations.length) * 100;
+  const scoredAggregations = lighthouseResults.aggregations.filter(
+    a => a.scored
+  );
+  const total = scoredAggregations.reduce(
+    (sum, aggregation) => sum + aggregation.total,
+    0
+  );
+  return total / scoredAggregations.length * 100;
 }
 
 module.exports.launchChrome = launchChrome;
