@@ -33,7 +33,7 @@ lighthouseCron.init();
 * [init](#init)
 
 <a name="new-lighthouse-cron"></a>
-#### `new LighthouseCron(urls, cron, timezone, flags)`
+#### `new LighthouseCron(urls, cron, timezone, chromeFlags, lighthouseFlags, lighthouseConfig)`
 Create a new instance of lighthouse cron.
 
 ##### Parameters
