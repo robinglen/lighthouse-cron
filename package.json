@@ -1,6 +1,6 @@
 {
   "name": "lighthouse-cron",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tool to run light house cron jobs on multiple urls and ship results",
   "main": "index.js",
   "scripts": {
