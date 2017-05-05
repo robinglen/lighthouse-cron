@@ -5,7 +5,7 @@ function launchChrome(opts) {
   return new ChromeLauncher(opts);
 }
 
-function runLighthouse(chrome, url, flags = {}) {
+function runLighthouse(chrome, url, flags = {}, config = undefined) {
   // overwrite so always return json
   flags.output = 'json';
   return chrome
@@ -16,7 +16,7 @@ function runLighthouse(chrome, url, flags = {}) {
       }
       return chrome.run();
     })
-    .then(() => Lighthouse(url, flags)) // Run Lighthouse.
+    .then(() => Lighthouse(url, flags, config)) // Run Lighthouse.
     .then(results => chrome.kill().then(() => results)) // Kill Chrome and return results.
     .catch(err => {
       // Kill Chrome if there's an error.

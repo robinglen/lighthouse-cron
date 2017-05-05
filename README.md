@@ -3,14 +3,6 @@
 
 Want to track your Lighthouse scores and metrics overtime? This module will allow you to write a simple script to perform multiple audits over time and allow you to transport the results.
 
-## TODO
-- Fix flags
-- run in chromeless (https://developers.google.com/web/updates/2017/04/headless-chrome)
-- coverage
-- show example of using keen.io to send data back
-- publish to npm
-- allow for custom lighthouse jobs
-
 ## Set up
 
 ```Bash
@@ -48,7 +40,9 @@ Create a new instance of lighthouse cron.
 * `urls` - **Required.** Array of objects including the url as a property.
 * `cron` - String for cron pattern *(Default: '00 00 * * * 0-6')*
 * `timezone` - String for cron timezone *(Default: 'Europe/London')*
-* `flags` - Object to enable Chrome and Lighthouse flags
+* `chromeFlags` - Array of Chrome flags e.g. `['--headless']`
+* `lighthouseFlags` - Object to enable Lighthouse flags
+* `lighthouseConfig` - Object describe custom configurations for lighthouse runs
 
 <a name="init"></a>
 #### `init(autorun)`
@@ -79,30 +73,44 @@ After all lighthouse audits are complete an event is emitted.
 #### `error`
 If a an error occurs an event is emitted with the error returned.
 
-## Example
+## Examples
+Below is an example of how you could report performance metrics and lighthouse scores to the data analytics platform [Keen.io](https://keen.io/).
+
 ```Javascript
+const KeenTracking = require('keen-tracking');
 const LighthouseCron = require('lighthouse-cron');
+
+// Configuring Keen client
+const keenClient = new KeenTracking({
+  projectId: 'Your Project Id',
+  writeKey: 'Your Write Key'
+});
+
+// Additional website and description fields added to improve your dashboards
 const lighthouseCron = new LighthouseCron(
   [
     {
       website: 'Google',
       description: 'Homepage',
-      url: 'https://www.google.com/'
+      url: 'https://www.google.com'
+    },
+    {
+      website: 'YouTube',
+      description: 'Homepage',
+      url: 'https://www.youtube.com'
     }
   ],
-  '00 00,15,30,45 * * * 0-6'
+  '00 00 * * * 0-6'
 );
 
+// listening for each audit to be complete
 lighthouseCron.on('auditComplete', audit => {
-  addAudit(audit);
+  const report = generateTrackableReport(audit);
+  keenClient.recordEvent('lighthouse audits', report);
 });
 
-function addAudit(audit) {
-  const report = generateTrackableReport(audit);
-  console.log(report);
-  // You could also beacon this back to GA as custom metrics or your own data visualization platform
-}
 
+// Pulling out the metrics we are interested in
 function generateTrackableReport(audit) {
   const reports = [
     'first-meaningful-paint',
@@ -125,13 +133,20 @@ function generateTrackableReport(audit) {
   return obj;
 }
 
-function getRequiredAuditMetrics(audit) {
+// getting the values we interested in
+function getRequiredAuditMetrics(metrics) {
   return {
-    score: audit.score,
-    value: audit.rawValue,
-    optimal: audit.optimalValue
+    score: metrics.score,
+    value: metrics.rawValue,
+    optimal: metrics.optimalValue
   };
 }
 
 lighthouseCron.init();
+```
+
+This demo is also available to be run from this module however instead of reporting the metrics to [Keen.io](https://keen.io/) they are just printed to console.
+
+```Bash
+npm run demo
 ```

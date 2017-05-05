@@ -9,13 +9,17 @@ module.exports = class LighthouseCron extends EventEmitter {
         urls = [],
         cron = '00 00 * * * 0-6',
         timezone = 'Europe/London',
-        flags = {}
+        chromeFlags = [],
+        lighthouseFlags = {},
+        lighthouseConfig = undefined
     ) {
         super();
         this.urls = urls;
         this.cron = cron;
-        this.flags = flags;
-        this.chrome = lighthouse.launchChrome(this.flags);
+        this.chromeFlags = chromeFlags;
+        this.lighthouseFlags = lighthouseFlags;
+        this.lighthouseConfig = lighthouseConfig;
+        this.chrome = lighthouse.launchChrome(this.chromeFlags);
         this.job = new CronJob(
             cron,
             () => {
@@ -30,7 +34,7 @@ module.exports = class LighthouseCron extends EventEmitter {
     }
 
     _cron(urls) {
-        this._doPromises(urls, this.chrome, this.flags);
+        this._doPromises(urls, this.chrome, this.flags, this.lighthouseConfig);
     }
 
     _promiseWhile(condition, action) {
@@ -44,7 +48,7 @@ module.exports = class LighthouseCron extends EventEmitter {
         return resolver.promise;
     }
 
-    _doPromises(urls, chrome, flags) {
+    _doPromises(urls, chrome, flags, config) {
         return new Promise((resolve, reject) => {
             let urlArrayPosition = 0;
             this._promiseWhile(
@@ -53,7 +57,8 @@ module.exports = class LighthouseCron extends EventEmitter {
                     lighthouse.runLighthouse(
                         chrome,
                         urls[urlArrayPosition].url,
-                        flags
+                        flags,
+                        config
                     ).then(lighthouseResults => {
                         const auditObj = {
                             metadata: urls[urlArrayPosition],
