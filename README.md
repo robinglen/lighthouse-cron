@@ -33,7 +33,7 @@ lighthouseCron.init();
 * [init](#init)
 
 <a name="new-lighthouse-cron"></a>
-#### `new LighthouseCron(urls, cron, timezone, chromeFlags, lighthouseFlags, lighthouseConfig)`
+#### new LighthouseCron(urls, cron, timezone, chromeFlags, lighthouseFlags, lighthouseConfig)
 Create a new instance of lighthouse cron.
 
 ##### Parameters
@@ -45,7 +45,7 @@ Create a new instance of lighthouse cron.
 * `lighthouseConfig` - Object describe custom configurations for lighthouse runs
 
 <a name="init"></a>
-#### `init(autorun)`
+#### init(autorun)
 Initialise lighthouse cron.
 
 ##### Parameters
@@ -58,19 +58,19 @@ Initialise lighthouse cron.
 * [error](#error)
 
 <a name="auditComplete"></a>
-#### `auditComplete`
+#### auditComplete
 After a lighthouse audit is complete on a url this event returns the results.
 
 <a name="cronCycleComplete"></a>
-#### `cronCycleComplete`
+#### cronCycleComplete
 After the cron job has been complete an event is emitted.
 
 <a name="allAuditsComplete"></a>
-#### `allAuditsComplete`
+#### allAuditsComplete
 After all lighthouse audits are complete an event is emitted.
 
 <a name="error"></a>
-#### `error`
+#### error
 If a an error occurs an event is emitted with the error returned.
 
 ## Examples
