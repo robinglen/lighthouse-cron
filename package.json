@@ -12,11 +12,14 @@
     "url": "git+https://github.com/thearegee/lighthouse-cron.git"
   },
   "keywords": [
+    "audit",
     "lighthouse",
-    "ci",
-    "cd",
-    "ci/cd",
-    "cli"
+    "lighthouse-audits",
+    "performance",
+    "performance-metrics",
+    "pwa",
+    "synthetic-test",
+    "ci-cd"
   ],
   "author": "Robin Glen",
   "license": "MIT",
