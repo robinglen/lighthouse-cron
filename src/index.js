@@ -1,6 +1,5 @@
 const lighthouse = require('./lighthouse');
 const CronJob = require('cron').CronJob;
-const Printer = require('lighthouse/lighthouse-cli/printer');
 const defer = require('promise-defer');
 const EventEmitter = require('events').EventEmitter;
 
@@ -37,7 +36,7 @@ module.exports = class LighthouseCron extends EventEmitter {
   }
 
   _cron(urls) {
-    this._doPromises(urls, this.chrome, this.flags, this.lighthouseConfig);
+    this._doPromises(urls, this.chrome, this.chromeFlags, this.lighthouseConfig);
   }
 
   _promiseWhile(condition, action) {
